@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.notemall.dao.OrderDao">
+
+	<!--1. [주문개요 정보 insert] -->
+	<insert id="orderDescInsert" parameterType="Order">
+		insert into m_orderDesc(onum,midx_fk, ototalPrice,ototalPoint,
+		opaystate, opaymethod, orderdate,
+		opointuse,ordermemo)
+		values(#{onum},#{midx_fk},#{ototalPrice},#{ototalPoint},
+		#{opaystate},#{payMethod},sysdate,#{opointuse},
+		#{orderMemo:VARCHAR})
+	</insert>
+
+	<!-- 2. [주문한 상품정보 insert] -->
+	<insert id="orderProductInsert" parameterType="Product">
+		insert into
+		m_order_product(onum, pnum, saleprice, opoint,
+		oqty, pimage) values(#{onum},#{pnum},#{saleprice},
+		#{point},#{pqty},#{pimage1})
+	</insert>
+
+	<!-- 3. [수령자 정보 insert] -->
+	<insert id="receiverInsert" parameterType="com.project.notemall.domain.ReceiverVO">
+		insert into m_receiver
+		(onum,name,hp1,hp2,hp3,post,addr1,addr2)
+		values(#{onum},#{name},#{hp1},#{hp2},#{hp3},#{post},#{addr1},#{addr2})
+	</insert>
+
+	<!-- resultMap="OrderJoin" 임에 주의 -->
+	<select id="getOrderDesc" resultMap="OrderJoin" parameterType="string">
+		select a.onum, midx_fk, ototalPrice, ototalPoint, odeliverPrice,
+		odeliver, opaystate, opaymethod, orderdate, opointuse,
+		nvl(ordermemo,' ') orderMemo,
+		b.pnum, (select pname from m_product where pnum=b.pnum) pname,
+		pimage,saleprice, opoint, oqty, c.name, c.hp1, c.hp2, c.hp3,
+		c.post, c.addr1, c.addr2
+		from m_orderDesc a join m_order_product b
+		on a.onum = b.onum join m_receiver c
+		on a.onum = c.onum and a.onum=#{value}
+	</select>
+	
+	<select id="getUserOrderList" resultType="Order" parameterType="int">
+		select * from m_orderdesc where midx_fk=#{idx}
+	</select>
+	<!--Join절에 사용할 매핑정보. DB에서 가져오는 컬럼명과 VO객체의 프로퍼티명을
+	매핑  -->
+	<resultMap type="Order" id="OrderJoin">
+		<!-- PK를 id엘리먼트에 지정 나머지 컬럼은 result엘리먼트로 지정  -->
+		<id property="onum" column="onum"/>
+		<result property="midx_fk" column="midx_fk"/>
+		<result property="ototalPrice" column="ototalPrice"/>
+		<result property="ototalPoint" column="ototalPoint"/>
+		<result property="odeliverPrice" column="odeliverPrice"/>
+		<result property="odeliver" column="odeliver"/>
+		<result property="opaystate" column="opaystate"/>
+		<result property="payMethod" column="opaymethod"/>
+		<result property="orderDate" column="orderDate"/>
+		<result property="opointuse" column="opointuse"/>
+		<result property="orderMemo" column="orderMemo"/>
+		<!-- OrderVO has a ReceiverVO --><!-- =하나일때는 association -->
+		<association property="receiver" javaType="com.project.notemall.domain.ReceiverVO">
+			<id property="onum" column="onum"/>
+			<result property="name" column="name"/>
+			<result property="hp1" column="hp1"/>
+			<result property="hp2" column="hp2"/>
+			<result property="hp3" column="hp3"/>
+			<result property="post" column="post"/>
+			<result property="addr1" column="addr1"/>
+			<result property="addr2" column="addr2"/>
+		</association>		
+		<!-- OrderVO has List<ProductVO> --><!-- 여러개일때는 collection -->
+		<collection property="orderList" javaType="java.util.ArrayList" ofType="Product">
+			<result property="pnum" column="pnum"/>
+			<result property="pname" column="pname"/>
+			<result property="pimage1" column="pimage"/>
+			<result property="pqty" column="oqty"/>
+			<result property="saleprice" column="saleprice"/>
+			<result property="point" column="opoint"/>
+		</collection>
+	</resultMap>
+	
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+

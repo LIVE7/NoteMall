@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper 
+   namespace="com.project.notemall.dao.BoardDAO">
+      
+   <!-- [0] [답변형 게시판 글쓰기] 
+   	글번호(idx)와 글그룹번호(refer)를 동일한 값으로 줌
+   -->
+   <insert id="insertBoard" parameterType="Board">
+   		<selectKey keyProperty="idx"  order="BEFORE" resultType="int">
+   			select m_board_seq.nextval from dual
+   		</selectKey>
+   		insert into m_board values(#{idx},#{name},#{pwd},
+   				#{subject:VARCHAR},#{content:VARCHAR}, sysdate,
+   				0,#{filename:VARCHAR},#{originFilename:VARCHAR},
+   				#{filesize:NUMERIC},#{idx},#{lev},#{sunbun})
+   </insert>   
+      
+   <!-- [1] [단순형 게시판 글쓰기] -->
+   <insert id="insertBoard_old"  parameterType="Board">
+   	   insert into m_board values(m_board_seq.nextval,#{name},
+   	  #{pwd},#{subject:VARCHAR},#{content:VARCHAR},sysdate,0,#{filename:VARCHAR},
+   	  #{filesize:NUMERIC})
+   	  				   <!--null값이 들어올 경우 jdbcType을 지정해야 함
+   	  				   	   문자열=> VARCHAR
+   	  				   	   숫자  => NUMERIC
+   	  				   	   날짜 => DATE
+   	  				     -->
+   </insert>
+   
+   <sql id="whereClause">
+   		<if test="findType != null and findKeyword !=''">
+   		<where>
+   			<choose>
+   				<when test="findType==1"><!-- 글제목 -->
+   					subject like '%'||#{findKeyword}||'%'
+   				</when>
+   				<when test="findType==2"><!-- 작성자 -->
+   					name like '%'||#{findKeyword}||'%'
+   				</when>
+   				<when test="findType==3"><!-- 글내용 -->
+   					content like '%'||#{findKeyword}||'%'
+   				</when>
+   			</choose>
+   		</where>	
+   		</if>
+   </sql>
+   
+   <!-- [2] 글목록 관련 (게시글 수 가져오기) -->
+   <select id="getTotalCount" resultType="int" parameterType="map">
+   		select count(idx) from m_board 
+   		<include refid="whereClause"/><!-- 검색시 필요한 where절 추가 -->
+   </select>
+   
+	<!-- [2] 글목록 가져오기 -->
+	<select id="selectBoardAll" resultType="Board" 
+	parameterType="com.project.notemall.domain.PagingVO">
+		<!-- select * from board order by idx desc -->
+		select * from
+		 (select row_number() over(order by refer desc, sunbun asc) rn,		 
+		  m_board.* from m_board		  
+		  <include refid="whereClause"/>
+		 )
+		where rn between #{start} and #{end}
+	</select>   
+	
+	<!-- [3] 조회수 증가 -->
+	<update id="updateReadnum" parameterType="int">
+		update m_board set readnum = readnum+1 where idx=#{value}
+	</update>
+   <!--  [4] 게시글 내용 가져오기 -->
+   <select id="selectBoardByIdx" resultType="Board"  parameterType="int">
+   		select * from m_board where idx=#{value}
+   </select>
+   <!-- [5] 게시글 삭제 -->
+   <delete id="deleteBoard" parameterType="int">
+   		delete from m_board where idx=#{idx}
+   </delete>
+   <!-- [6] 게시글 수정 -->
+   <update id="updateBoard" parameterType="Board">
+   		update m_board set name=#{name}, subject=#{subject},
+   			content=#{content:VARCHAR}, pwd=#{pwd}
+   			<if test="filename!=null and filename!=''">
+   			, filename=#{filename}, originFilename=#{originFilename}, filesize=#{filesize}
+   			</if>
+   			where idx=#{idx}
+   </update>
+   
+   <!-- [7] [답변글 쓰기 관련 1단계] 부모글의 refer,lev,sunbun가져오기 -->
+   <select id="selectRefLevSunbun" parameterType="int" resultType="Board">
+   		select refer, lev, sunbun from m_board where idx=#{value}
+   </select>
+   <!-- [8] [답변글 쓰기 관련 2단계]  -->
+   <update id="updateSunbun" parameterType="Board">
+   		update m_board set sunbun=sunbun+1
+   		where refer=#{refer} and sunbun > #{sunbun}
+   </update>
+   <!-- [9] [답변글 쓰기 관련 3단계] 답변글 insert하기 -->
+   <insert id="rewriteBoard" parameterType="Board">
+   		<selectKey keyProperty="idx"  order="BEFORE" resultType="int">
+   			select m_board_seq.nextval from dual
+   		</selectKey>
+   		insert into m_board values(#{idx},#{name},#{pwd},
+   				#{subject:VARCHAR},#{content:VARCHAR}, sysdate,
+   				0,#{filename:VARCHAR},#{originFilename:VARCHAR},
+   				#{filesize:NUMERIC},#{refer},#{lev},#{sunbun})
+   </insert> 
+  
+</mapper>
+
+
+
+
+
+

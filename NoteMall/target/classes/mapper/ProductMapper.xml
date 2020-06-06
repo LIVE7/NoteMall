@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<!-- 
+	datadource-context.xml에  mybatis-spring:scan에 등록된
+	패키지의 인터페이스명과 네임스페이스를 반드시 동일하게 주어야 한다.
+ -->
+<mapper namespace="com.project.notemall.dao.ProductDao">    
+
+	<!-- 최근 등록된 상품 6개 가져옴 -->
+	<select id="selectByPspec" parameterType="string" resultType="Product">
+		<!-- select * from m_product where pspec=#{pspec} -->
+		select * from(select rownum rn, a.* from(select * FROM m_product where pspec=#{pspec} ORDER BY pnum desc) a) where rn between 1 and 6
+	</select>
+	
+	<!-- 상품 번호로 찾기 -->
+	<select id="selectByPnum" parameterType="int" resultType="Product">
+		select * from m_product where pnum=#{pnum}
+	</select>
+	
+	<!-- 해당 브랜드의 상품 목록 -->
+	<select id="selectByPcompany" resultType="Product"
+	parameterType="com.project.notemall.domain.PagingVO">
+		<!-- select * from board order by idx desc -->
+		select * from
+		 (select row_number() over(order by pnum desc) rn,	 
+		  m_product.* from m_product		  
+		  <include refid="whereClause"/>
+		 )
+		where rn between #{start} and #{end}
+	</select>
+   
+   
+   <sql id="whereClause">
+   		<if test="findType != null and findKeyword !=''">
+   		<where>
+   			<choose>
+   				<when test="findType==1"><!-- 글제목 -->
+   					pcompany like '%'||#{findKeyword}||'%'
+   				</when>
+   				<when test="findType==2"><!-- 작성자 -->
+   					LOWER(pcompany) like LOWER('%'||#{findKeyword}||'%') or LOWER(pname) like LOWER('%'||#{findKeyword}||'%')
+   				</when>
+   				<when test="findType==3"><!-- 글내용 -->
+   					pcompany like '%'||#{findKeyword}||'%'
+   				</when>
+   			</choose>
+   		</where>	
+   		</if>
+   </sql>
+   
+   <!-- 해당 브랜드의 상품의 갯수 가져오기 -->
+   <select id="getTotalCount" resultType="int" parameterType="map">
+   		select count(pnum) from m_product
+   		<include refid="whereClause"/><!-- 검색시 필요한 where절 추가 -->
+   </select>
+
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+

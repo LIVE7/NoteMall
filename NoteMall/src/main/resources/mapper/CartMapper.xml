@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  
+datasource-context.xml에 mybatis-spring:scan에 등록된
+패키지의 인터페이스명과 네임스페이스를 만드시 동일하게 주어야 한다.
+-->  
+<mapper namespace="com.project.notemall.dao.CartDao">    
+	<!-- 특정회원이 특정상품을 몇개 장바구니에 가지고 있는지 세기 -->
+	<select id="getCartCountByIdx" resultType="int"
+	 parameterType="com.project.notemall.domain.CartVO">
+		select count(cartNum) from m_cart where idx=#{idx} and pnum=#{pnum}
+	</select>
+	
+	<!-- [장바구니 추가 관련] 장바구니 상품 추가 -->
+	<insert id="addCart" parameterType="Cart">
+		<selectKey keyProperty="cartNum" order="BEFORE" resultType="int">
+			select m_cart_seq.nextval from dual
+		</selectKey>
+		insert into m_cart(cartNum, pnum, oqty, idx, indate)
+		values(#{cartNum},#{pnum},#{oqty},#{idx}, sysdate)
+	</insert>
+	
+	<!--[장바구니 추가 관련] 장바구니에 이미 있는 상품은 수량만 수정  -->
+	<update id="updateCartOqty" parameterType="Cart">
+		update m_cart set oqty=oqty + #{oqty} where idx=#{idx} and pnum=#{pnum}
+	</update>
+	
+	<!--[장바구니 목록 가져오기] 장바구니(cart) 상품정보(product) 조인  -->
+	<select id="selectCartView_old" resultType="Cart" parameterType="int">
+	select c.cartnum,p.pnum,c.idx,p.pname,p.pimage1 pimage,p.saleprice,
+	p.point,c.oqty,(p.saleprice*c.oqty) totalprice,
+	 (p.point * c.oqty) totalpoint
+	 from m_product p join m_cart c 
+	 on p.pnum=c.pnum and c.idx=#{value}
+	</select>
+	
+	<!-- DB에서 장바구니 VIEW 를 만들어서 가져옴-->
+	<select id="selectCartView" resultType="Cart" parameterType="int">
+		select * from m_cartView where idx=#{value}
+	</select>
+	<select id="getCartTotal" resultType="Cart" parameterType="int">
+		select sum(totalPrice) cartTotalPrice,
+		 sum(totalPoint) cartTotalPoint from m_cartView
+		where idx=#{value}
+	</select>
+	
+	<!-- [장바구니의 특정상품 삭제] -->
+	<delete id="deleteCart" parameterType="int">
+		delete from m_cart where cartNum=#{value}
+	</delete>
+	<update id="editCart" parameterType="Cart">
+		update m_cart set oqty=#{oqty} where cartNum=#{cartNum}
+	</update>
+	
+	<!-- [주문완료된 상품정보 장바구니에서 삭제] -->
+	<delete id="deleteCartByIdx"  parameterType="map">
+		delete from m_cart where idx=#{midx_fk} and pnum=#{pnum}
+	</delete>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+

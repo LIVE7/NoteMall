@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.notemall.dao.UserDao">
+   								
+	<!-- 회원가입 -->
+	<insert id="createUser" parameterType="User">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			select m_member_seq.nextval from dual
+		</selectKey>
+		insert into m_member values(#{idx}, #{name}, #{userid}, #{pwd}, #{hp1}, #{hp2}, #{hp3}, #{post}, #{addr1:VARCHAR}, #{addr2:VARCHAR}, sysdate, 1000, 0)
+	</insert>
+	
+	<!-- 아이디 중복 검사 -->
+	<select id="idCheck" resultType="int" parameterType="String">
+		select count(*) from m_member where userid=#{userid}
+	</select>
+	
+	<!-- 로그인 -->
+	<select id="getUser" resultType="User" parameterType="string">
+		select *
+		from m_member where userid=#{userid}
+	</select>
+		
+	<!-- 회원 마일리지에 결제시 사용한 포인트만큼 차감 -->
+	<update id="updateMileageDown" parameterType="Order">
+		update m_member set mileage=mileage-#{opointuse} 
+		where idx=#{midx_fk} and mileage>=#{opointuse}
+	</update>
+	<!-- 회원 마일리지에 결제한 포인트만큼 적립 -->
+	<update id="updateMileageUp" parameterType="Order">
+		update m_member set mileage=mileage+#{ototalPoint}
+		where idx=#{midx_fk}
+	</update>
+	
+	<select id="getUserByIdx" parameterType="int" resultType="User">
+		select * from m_member where idx=#{value}
+	</select>
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+

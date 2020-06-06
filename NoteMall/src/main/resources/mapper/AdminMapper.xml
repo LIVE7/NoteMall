@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.notemall.dao.AdminDao">
+	<!-- 월별 주문목록 가져오기 (주문자아이디, 주문번호,주문총액,주문날짜) -->
+	<select id="getOrderListByMonth" parameterType="string"
+		resultType="Order">
+		select midx_fk, onum,ototalPrice, orderDate,
+		(select userid
+		from m_member where idx=midx_fk) userid
+		from m_orderDesc where
+		to_char(orderDate,'yyyy-mm')=#{value}
+	</select>
+
+	<!--배송상태, 결제상태 변경하기 #{colName}==> 'odeliver' ${colName}==> odeliver ${값} 
+		==> sql injection 공격 대상이 될 수 있음 -->
+	<update id="manageOrder2_old" parameterType="map">
+		update m_orderDesc set
+		${colName}=#{colVal} where onum=#{onum}
+	</update>
+
+	<update id="manageOrder2" parameterType="map">
+		update m_orderDesc
+		<set>
+			<if test="colName=='opaystate'">
+				opaystate=#{colVal} where onum=#{onum} and odeliver='미배송'
+			</if>
+			<if test="colName=='odeliver'">
+				odeliver=#{colVal} where onum=#{onum} and
+				opaystate='결제완료'
+			</if>
+		</set>
+	</update>
+	<!-- 연도별 매출총액 -->
+	<select id="getSumYear" resultType="com.project.notemall.domain.SumVO">
+		select
+		to_char(orderDate,'yyyy') oyear, sum(ototalPrice) osum
+		from m_orderDesc
+		where opaystate in ('결제 완료','결제완료')
+		group by to_char(orderDate,'yyyy') order by 1
+		asc
+	</select>
+	<!-- 특정 연도 월별 매출 총액 -->
+	<select id="getSumMonth" resultType="com.project.notemall.domain.SumVO"
+		parameterType="string">
+		select to_char(orderDate,'yyyy-mm') omonth, sum(ototalPrice) osum
+		from m_orderDesc where opaystate in ('결제 완료','결제완료') 
+		and to_char(orderDate,'yyyy') =#{value} 
+		group by to_char(orderDate,'yyyy-mm')
+		order by 1 asc
+	</select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+

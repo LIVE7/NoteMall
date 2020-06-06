@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+<!-- =db mapper 를 사용하기 위해 항상 등록-->
+ <typeAliases>
+	<typeAlias type="com.project.notemall.domain.UserVO" alias="User"/>
+	<typeAlias type="com.project.notemall.domain.ProductVO" alias="Product"/>
+	<typeAlias type="com.project.notemall.domain.CartVO" alias="Cart"/>
+	<typeAlias type="com.project.notemall.domain.OrderVO" alias="Order"/>
+	<typeAlias type="com.project.notemall.domain.CategoryVO" alias="Category"/>
+	<typeAlias type="com.project.notemall.domain.EmailVO" alias="Email"/>
+	<typeAlias type="com.project.notemall.domain.BoardVO" alias="Board"/>
+ </typeAliases>
+ 
+  <mappers>
+	<mapper resource="mapper/UserMapper.xml"/>
+	<mapper resource="mapper/ProductMapper.xml"/>
+	<mapper resource="mapper/CartMapper.xml"/>
+	<mapper resource="mapper/OrderMapper.xml"/>
+	<mapper resource="mapper/AdminMapper.xml"/>
+	<mapper resource="mapper/EmailMapper.xml"/>
+	<mapper resource="mapper/BoardMapper.xml"/>
+  </mappers>
+</configuration>

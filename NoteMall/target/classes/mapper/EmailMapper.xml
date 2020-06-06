@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.project.notemall.dao.EmailDao">
+
+				
+	<!-- 이메일 등록하기 -->
+	<insert id="insertEmail" parameterType="Email">
+		<selectKey keyProperty="idx" resultType="int" order="BEFORE">
+			select m_email_seq.nextval from dual
+		</selectKey>
+		insert into m_email values(#{idx}, #{email})
+	</insert>
+	
+	<!-- 이메일 목록 가져오기 -->
+	<select id="getEmail" resultType="Email">
+		select * from m_email
+	</select>
+	
+	<!-- 이메일 삭제하기 -->
+	<delete id="deleteEmail" parameterType="int">
+		delete from m_email where idx=#{idx}
+	</delete>
+	
+
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+

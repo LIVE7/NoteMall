@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<!-- [1] DataSource============================================================ -->
+	<!-- JNDI를 이용하는 방법:
+	 Tomcat의 server.xml에 등록된 DBCP커넥션 풀을 이름으로 찾아 주입하고
+	 빈으로 등록
+	 -->
+	<bean id="jndiDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="java:comp/env/jdbc/mydev"/>
+	</bean>	
+	<!-- DriverManagerDataSource빈을 이용하는 방법 -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:XE"/>
+		<property name="username" value="mydev"/>
+		<property name="password" value="tiger"/>
+	</bean>
+	<!-- [2] SqlSessionFactoryBean================================================= -->
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="jndiDataSource"/>
+		<property name="configLocation" value="classpath:spring/mybatis-config.xml"/>
+	</bean>
+	<!-- [3] SqlSessionTemplate==================================================== -->
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactoryBean"/><!-- =생성자 주입 -->
+	</bean>
+		
+</beans>
